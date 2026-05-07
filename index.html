@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EventosThe</title>
+  <meta name="theme-color" content="#1463ff">
+  <meta name="apple-mobile-web-app-title" content="EventosThe">
+  <meta name="application-name" content="EventosThe">
+  <meta name="description" content="Rolês com música ao vivo em Teresina. Veja no mapa onde tem som hoje.">
+  <meta property="og:title" content="EventosThe">
+  <meta property="og:description" content="Rolês com música ao vivo em Teresina. Veja no mapa onde tem som hoje.">
+  <meta property="og:image" content="https://eventos-the.web.app/preview.png">
+  <meta property="og:url" content="https://eventos-the.web.app">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="EventosThe">
+  <meta name="twitter:description" content="Rolês com música ao vivo em Teresina. Veja no mapa onde tem som hoje.">
+  <meta name="twitter:image" content="https://eventos-the.web.app/preview.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --blue: #1463ff;
+      --blue-dark: #08245c;
+      --orange: #ff6b35;
+      --pink: #e83e8c;
+      --yellow: #ffd166;
+      --green: #0f9f7a;
+      --bg: #f7f3ea;
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #667085;
+      --border: #eadfcd;
+      --warning-bg: #fff7ed;
+      --warning-text: #9a3412;
+      --shadow: 0 16px 36px rgba(17, 24, 39, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 209, 102, 0.34), transparent 34vw),
+        linear-gradient(180deg, #fff9ee 0%, var(--bg) 48%, #eef6ff 100%);
+    }
+
+    body {
+      padding-bottom: 76px;
+    }
+
+    .topbar {
+      min-height: 74px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(135deg, #08245c 0%, #1463ff 58%, #e83e8c 100%);
+      color: #fff;
+      box-shadow: 0 10px 26px rgba(8, 36, 92, 0.28);
+      position: sticky;
+      top: 0;
+      z-index: 800;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.9rem;
+    }
+
+    .icon-button {
+      width: 46px;
+      height: 46px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--yellow);
+      color: var(--blue-dark);
+      box-shadow: 0 8px 18px rgba(255, 209, 102, 0.24);
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    #map {
+      height: 58vh;
+      min-height: 340px;
+      width: 100%;
+      background: #dce8ef;
+      border-bottom: 4px solid var(--yellow);
+    }
+
+    .filters {
+      padding: 10px 12px 12px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .quick-search {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    .quick-search input {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    .quick-search label {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--blue-dark);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .quick-search input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+      accent-color: var(--orange);
+    }
+
+    .date-tabs {
+      padding: 12px 12px 0;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .date-picker-row {
+      padding: 10px 12px 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+    }
+
+    .date-picker-row label {
+      min-height: 46px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--blue-dark);
+      font-weight: 700;
+    }
+
+    .date-picker-row input {
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      outline: 0;
+    }
+
+    .filters::-webkit-scrollbar,
+    .date-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-button,
+    .date-button {
+      min-width: max-content;
+      min-height: 46px;
+      padding: 0 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--blue-dark);
+      font-size: 0.96rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .filter-button.active,
+    .date-button.active {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(232, 62, 140, 0.22);
+    }
+
+    .content {
+      width: min(940px, 100%);
+      margin: 0 auto;
+      padding: 16px 14px 22px;
+    }
+
+    .message {
+      display: none;
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid #fed7aa;
+      border-radius: 14px;
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      line-height: 1.35;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      color: var(--blue-dark);
+      font-size: 1.18rem;
+      letter-spacing: 0;
+    }
+
+    .event-count {
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
+
+    .event-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event-card {
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .event-card.highlight {
+      border-color: rgba(255, 107, 53, 0.52);
+      box-shadow: 0 18px 42px rgba(255, 107, 53, 0.18);
+    }
+
+    .event-card.shared-focus {
+      outline: 4px solid rgba(255, 209, 102, 0.78);
+      outline-offset: 3px;
+    }
+
+    .event-card.cancelled {
+      opacity: 0.68;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin: 9px 0 7px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: var(--blue-dark);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .badge.hot {
+      background: #fff0e8;
+      color: #b93815;
+    }
+
+    .badge.free {
+      background: #ecfdf3;
+      color: #027a48;
+    }
+
+    .badge.cancelled {
+      background: #fef3f2;
+      color: #b42318;
+    }
+
+    .badge.no-map {
+      background: #fff7ed;
+      color: #9a3412;
+    }
+
+    .event-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 5px;
+      background: linear-gradient(90deg, var(--orange), var(--pink), var(--blue));
+    }
+
+    .event-card h3 {
+      margin: 5px 0 7px;
+      color: var(--blue-dark);
+      font-size: 1.1rem;
+      letter-spacing: 0;
+    }
+
+    .event-meta {
+      margin: 4px 0;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .event-meta strong {
+      color: var(--text);
+    }
+
+    .attraction-list {
+      margin: 8px 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+
+    .attraction-list li {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #f8fbff;
+      color: var(--blue-dark);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .attraction-list span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    .card-actions {
+      margin-top: 11px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-link,
+    .action-button {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 13px;
+      border-radius: 999px;
+      border: 0;
+      background: linear-gradient(135deg, var(--blue), #6f4cff);
+      color: #fff;
+      text-decoration: none;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action-link.secondary,
+    .action-button.secondary {
+      background: #fff6de;
+      color: var(--blue-dark);
+      border: 1px solid #f2d487;
+    }
+
+    .empty-state {
+      margin: 0;
+      padding: 14px;
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      color: var(--muted);
+      background: #fff;
+      line-height: 1.4;
+    }
+
+    .admin-link {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 900;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 8px 22px rgba(8, 61, 104, 0.28);
+    }
+
+    .popup-card {
+      min-width: 220px;
+      max-width: 270px;
+      line-height: 1.35;
+    }
+
+    .popup-card h2 {
+      margin: 0 0 8px;
+      color: var(--blue-dark);
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    .popup-card p {
+      margin: 5px 0;
+      font-size: 0.95rem;
+    }
+
+    .popup-card a {
+      min-height: 38px;
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (min-width: 780px) {
+      .event-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 430px) {
+      .topbar {
+        padding: 10px 12px;
+      }
+
+      .brand h1 {
+        font-size: 1.12rem;
+      }
+
+      .brand p {
+        font-size: 0.82rem;
+      }
+
+      #map {
+        height: 57vh;
+        min-height: 320px;
+      }
+
+      .filter-button {
+        min-width: max-content;
+        padding-inline: 14px;
+        font-size: 0.92rem;
+      }
+
+      .filters {
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+
+      .filters .filter-button {
+        flex: 1 1 calc(25% - 8px);
+        min-width: 74px;
+        padding-inline: 10px;
+        font-size: 0.9rem;
+      }
+
+      .filters [data-genero="todos"] {
+        flex-basis: calc(40% - 8px);
+        min-width: 108px;
+      }
+
+      .quick-search {
+        grid-template-columns: 1fr;
+      }
+
+      .date-picker-row {
+        grid-template-columns: 1fr;
+      }
+
+      .date-tabs .date-button {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 44px;
+        padding-inline: 9px;
+        font-size: 0.86rem;
+      }
+
+      .date-tabs {
+        gap: 6px;
+        padding-inline: 8px;
+        overflow-x: visible;
+      }
+
+      .date-tabs [data-periodo="semana"] {
+        flex-grow: 1.35;
+      }
+
+      .section-title {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .event-count {
+        white-space: normal;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>EventosThe</h1>
+      <p>Rolês com música ao vivo em Teresina</p>
+    </div>
+    <button class="icon-button" id="locationButton" type="button" aria-label="Centralizar na minha localização">⌖</button>
+  </header>
+
+  <main>
+    <div id="map" aria-label="Mapa com eventos de música ao vivo"></div>
+
+    <section class="date-tabs" aria-label="Filtros por data">
+      <button class="date-button active" type="button" data-periodo="hoje">Hoje</button>
+      <button class="date-button" type="button" data-periodo="amanha">Amanhã</button>
+      <button class="date-button" type="button" data-periodo="semana">Esta semana</button>
+      <button class="date-button" type="button" data-periodo="todos">Todos</button>
+    </section>
+
+    <section class="date-picker-row" aria-label="Escolher data específica">
+      <label>
+        Data
+        <input type="date" id="customDateInput">
+      </label>
+      <button class="date-button" type="button" id="clearDateButton">Limpar data</button>
+    </section>
+
+    <section class="filters" aria-label="Filtros por gênero musical">
+      <button class="filter-button active" type="button" data-genero="todos">Todos</button>
+      <button class="filter-button" type="button" data-genero="pagode">Pagode</button>
+      <button class="filter-button" type="button" data-genero="forró">Forró</button>
+      <button class="filter-button" type="button" data-genero="sertanejo">Sertanejo</button>
+      <button class="filter-button" type="button" data-genero="rock">Rock</button>
+      <button class="filter-button" type="button" data-genero="mpb">MPB</button>
+      <button class="filter-button" type="button" data-genero="k-pop">K-pop</button>
+    </section>
+
+    <section class="quick-search" aria-label="Busca rápida">
+      <input type="search" id="bairroSearch" placeholder="Buscar banda, local ou bairro">
+      <label>
+        <input type="checkbox" id="gratisFilter">
+        Grátis
+      </label>
+    </section>
+
+    <section class="content">
+      <div class="message" id="messageBox" role="status"></div>
+      <div class="section-title">
+        <h2 id="listTitle">Rolês de hoje</h2>
+        <span class="event-count" id="eventCount">Carregando eventos...</span>
+      </div>
+      <div class="event-list" id="eventList"></div>
+    </section>
+  </main>
+
+  <a class="admin-link" href="admin.html">Admin</a>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      onSnapshot,
+      doc,
+      setDoc,
+      updateDoc,
+      increment,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // Substitua pelos dados do seu projeto Firebase.
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMXrN6BaYEHNGD--DrFRAOBKqrAnYoqQU",
+      authDomain: "teresina-tem-som.firebaseapp.com",
+      databaseURL: "https://teresina-tem-som-default-rtdb.firebaseio.com",
+      projectId: "teresina-tem-som",
+      storageBucket: "teresina-tem-som.firebasestorage.app",
+      messagingSenderId: "669339264688",
+      appId: "1:669339264688:web:1a3d615d2bf7cff0cfbd75"
+    };
+
+    const TERESINA_CENTRO = [-5.08921, -42.80160];
+    const DEFAULT_ZOOM = 14;
+
+    let map;
+    let markersLayer;
+    let userMarker;
+    let db;
+    let eventos = [];
+    let filtroAtual = "todos";
+    let periodoAtual = "hoje";
+    let dataEscolhida = "";
+    let buscaTexto = "";
+    let somenteGratis = false;
+    let eventoCompartilhadoId = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      eventoCompartilhadoId = new URLSearchParams(window.location.search).get("evento");
+      iniciarMapa();
+      configurarFiltros();
+      configurarPeriodos();
+      configurarDataEscolhida();
+      configurarBusca();
+      configurarBotaoLocalizacao();
+      carregarEventos();
+    });
+
+    function iniciarMapa() {
+      map = L.map("map", { zoomControl: true }).setView(TERESINA_CENTRO, DEFAULT_ZOOM);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+      centralizarNaLocalizacaoAtual();
+    }
+
+    function configurarBusca() {
+      document.getElementById("bairroSearch").addEventListener("input", (event) => {
+        buscaTexto = normalizarTexto(event.target.value);
+        atualizarTela();
+      });
+
+      document.getElementById("gratisFilter").addEventListener("change", (event) => {
+        somenteGratis = event.target.checked;
+        atualizarTela();
+      });
+    }
+
+    function configurarFiltros() {
+      document.querySelectorAll(".filter-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          filtroAtual = button.dataset.genero;
+          document.querySelectorAll(".filter-button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          atualizarTela();
+        });
+      });
+    }
+
+    function configurarPeriodos() {
+      document.querySelectorAll(".date-button").forEach((button) => {
+        if (!button.dataset.periodo) {
+          return;
+        }
+
+        button.addEventListener("click", () => {
+          periodoAtual = button.dataset.periodo;
+          dataEscolhida = "";
+          document.getElementById("customDateInput").value = "";
+          document.querySelectorAll(".date-button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          atualizarTela();
+        });
+      });
+    }
+
+    function configurarDataEscolhida() {
+      document.getElementById("customDateInput").addEventListener("change", (event) => {
+        dataEscolhida = event.target.value;
+
+        if (!dataEscolhida) {
+          return;
+        }
+
+        periodoAtual = "data";
+        document.querySelectorAll(".date-button").forEach((item) => item.classList.remove("active"));
+        atualizarTela();
+      });
+
+      document.getElementById("clearDateButton").addEventListener("click", () => {
+        dataEscolhida = "";
+        periodoAtual = "hoje";
+        document.getElementById("customDateInput").value = "";
+        document.querySelectorAll(".date-button").forEach((item) => item.classList.remove("active"));
+        document.querySelector('[data-periodo="hoje"]').classList.add("active");
+        atualizarTela();
+      });
+    }
+
+    function configurarBotaoLocalizacao() {
+      document.getElementById("locationButton").addEventListener("click", centralizarNaLocalizacaoAtual);
+    }
+
+    function centralizarNaLocalizacaoAtual() {
+      if (!navigator.geolocation) {
+        mostrarMensagem("Seu navegador não oferece geolocalização. O mapa foi centralizado no Centro de Teresina.");
+        map.setView(TERESINA_CENTRO, DEFAULT_ZOOM);
+        return;
+      }
+
+      mostrarMensagem("Tentando acessar sua localização...");
+      tentarGeolocalizacao(false, 15000)
+        .catch(() => tentarGeolocalizacao(true, 20000))
+        .catch(() => {
+          mostrarMensagem("Não foi possível acessar sua localização. Verifique se a localização do aparelho/navegador está ativa. O mapa ficou no Centro de Teresina.");
+          map.setView(TERESINA_CENTRO, DEFAULT_ZOOM);
+        });
+    }
+
+    function tentarGeolocalizacao(enableHighAccuracy, timeout) {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLatLng = [position.coords.latitude, position.coords.longitude];
+            map.setView(userLatLng, DEFAULT_ZOOM);
+
+            if (userMarker) {
+              map.removeLayer(userMarker);
+            }
+
+            userMarker = L.circleMarker(userLatLng, {
+              radius: 8,
+              color: "#0f5e9c",
+              fillColor: "#0f5e9c",
+              fillOpacity: 0.85
+            }).addTo(map).bindPopup("Você está aqui");
+
+            esconderMensagem();
+            resolve(position);
+          },
+          reject,
+          {
+            enableHighAccuracy,
+            timeout,
+            maximumAge: 300000
+          }
+        );
+      });
+    }
+
+    function carregarEventos() {
+      try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        const eventosRef = collection(db, "eventos");
+
+        onSnapshot(
+          eventosRef,
+          (snapshot) => {
+            eventos = snapshot.docs.map((documento) => ({
+              id: documento.id,
+              ...documento.data()
+            }));
+            esconderMensagem();
+            atualizarTela();
+            registrarVisita();
+          },
+          (error) => {
+            console.error("Erro ao carregar eventos:", error);
+            mostrarMensagem("Não foi possível carregar os eventos agora. Confira a configuração do Firebase e tente novamente.");
+            atualizarContador(0);
+            renderizarLista([]);
+          }
+        );
+      } catch (error) {
+        console.error("Erro ao iniciar Firebase:", error);
+        mostrarMensagem("Não foi possível conectar ao Firebase. Confira suas credenciais no início do script.");
+        atualizarContador(0);
+        renderizarLista([]);
+      }
+    }
+
+    function atualizarTela() {
+      const eventosFiltrados = filtrarEventos();
+      adicionarMarcadores(eventosFiltrados);
+      renderizarLista(eventosFiltrados);
+      atualizarContador(eventosFiltrados.length);
+      focarEventoCompartilhado();
+    }
+
+    function filtrarEventos() {
+      const intervalo = obterIntervaloPeriodo();
+
+      return eventos.filter((evento) => {
+        if (evento.id === eventoCompartilhadoId) {
+          return true;
+        }
+
+        const dataEvento = evento.dataEvento || obterDataHoje();
+        const generoConfere = filtroAtual === "todos" || obterGenerosDoEvento(evento).includes(filtroAtual);
+        const dataConfere = dataEscolhida
+          ? dataEvento === dataEscolhida
+          : periodoAtual === "todos" || (dataEvento >= intervalo.inicio && dataEvento <= intervalo.fim);
+        const buscaConfere = eventoConfereBusca(evento);
+        const gratisConfere = !somenteGratis || eventoEhGratis(evento);
+        const statusConfere = normalizarStatus(evento.status) !== "cancelado";
+        return dataConfere && generoConfere && buscaConfere && gratisConfere && statusConfere;
+      }).sort(ordenarEventos);
+    }
+
+    function eventoConfereBusca(evento) {
+      if (!buscaTexto) {
+        return true;
+      }
+
+      const atracoes = obterAtracoesDoEvento(evento)
+        .map((atracao) => `${atracao.banda || ""} ${formatarGenero(atracao.genero)} ${atracao.horario || ""}`)
+        .join(" ");
+
+      const textoEvento = [
+        evento.estabelecimento,
+        evento.banda,
+        evento.genero,
+        evento.bairro,
+        evento.endereco,
+        evento.valor,
+        atracoes
+      ].join(" ");
+
+      return normalizarTexto(textoEvento).includes(buscaTexto);
+    }
+
+    function adicionarMarcadores(eventosFiltrados) {
+      markersLayer.clearLayers();
+
+      eventosFiltrados
+        .filter(temCoordenadasValidas)
+        .forEach((evento) => {
+          const marker = L.marker([Number(evento.latitude), Number(evento.longitude)]);
+          marker.bindPopup(criarPopup(evento));
+          marker.addTo(markersLayer);
+        });
+    }
+
+    function renderizarLista(eventosFiltrados) {
+      const eventList = document.getElementById("eventList");
+      eventList.innerHTML = "";
+
+      if (eventosFiltrados.length === 0) {
+        eventList.innerHTML = `<p class="empty-state">Nenhum evento encontrado para ${escaparHtml(obterRotuloPeriodo()).toLowerCase()} com esse filtro. Quando você cadastrar no admin, ele aparece aqui e no mapa em tempo real.</p>`;
+        return;
+      }
+
+      eventosFiltrados.forEach((evento) => {
+        const card = document.createElement("article");
+        card.id = `evento-${evento.id}`;
+        card.className = `event-card${evento.destaque ? " highlight" : ""}${normalizarStatus(evento.status) === "cancelado" ? " cancelled" : ""}`;
+        card.innerHTML = `
+          <h3>${escaparHtml(evento.estabelecimento || "Estabelecimento")}</h3>
+          <div class="badge-row">${criarBadges(evento)}</div>
+          <p class="event-meta"><strong>Data:</strong> ${escaparHtml(formatarData(evento.dataEvento))} · <strong>Gêneros:</strong> ${escaparHtml(formatarGenerosDoEvento(evento))}</p>
+          ${criarListaAtracoes(evento)}
+          <p class="event-meta"><strong>Bairro:</strong> ${escaparHtml(evento.bairro || "-")}</p>
+          <p class="event-meta"><strong>Endereço:</strong> ${escaparHtml(formatarEndereco(evento))}</p>
+          <p class="event-meta"><strong>Horário:</strong> ${escaparHtml(obterHorario(evento))} · <strong>Couvert/entrada:</strong> ${eventoCobraCouvert(evento) ? "Sim" : "Não"} · <strong>Valor:</strong> ${escaparHtml(evento.valor || "Grátis")} · <strong>10%:</strong> ${evento.pagaDezPorCento ? "Sim" : "Não"}</p>
+          <div class="card-actions">
+            <a class="action-link" href="${criarUrlRota(evento)}" target="_blank" rel="noopener">Como chegar</a>
+            ${criarLinksContato(evento)}
+            <button class="action-button secondary" type="button" data-share-id="${escaparHtml(evento.id)}">Compartilhar</button>
+            <button class="action-button secondary" type="button" data-evento-id="${escaparHtml(evento.id)}">Ver no mapa</button>
+          </div>
+        `;
+
+        card.querySelector(".action-link").addEventListener("click", () => registrarMetrica(evento.id, "comoChegar"));
+        card.querySelector("[data-share-id]").addEventListener("click", () => compartilharEvento(evento));
+        card.querySelector("[data-evento-id]").addEventListener("click", () => {
+          registrarMetrica(evento.id, "verNoMapa");
+          focarEventoNoMapa(evento);
+        });
+        eventList.appendChild(card);
+      });
+    }
+
+    function focarEventoCompartilhado() {
+      if (!eventoCompartilhadoId) {
+        return;
+      }
+
+      const evento = eventos.find((item) => item.id === eventoCompartilhadoId);
+      const card = document.getElementById(`evento-${eventoCompartilhadoId}`);
+
+      if (!evento || !card) {
+        return;
+      }
+
+      focarEventoNoMapa(evento);
+      card.classList.add("shared-focus");
+      setTimeout(() => {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 550);
+      eventoCompartilhadoId = null;
+    }
+
+    function criarBadges(evento) {
+      const badges = [];
+
+      if (evento.destaque) {
+        badges.push('<span class="badge hot">Destaque</span>');
+      }
+
+      if (eventoEhGratis(evento)) {
+        badges.push('<span class="badge free">Grátis</span>');
+      }
+
+      if (normalizarStatus(evento.status) === "cancelado") {
+        badges.push('<span class="badge cancelled">Cancelado</span>');
+      }
+
+      if (!temCoordenadasValidas(evento)) {
+        badges.push('<span class="badge no-map">Sem pin no mapa</span>');
+      }
+
+      return badges.join("");
+    }
+
+    async function compartilharEvento(evento) {
+      const url = `${window.location.origin}${window.location.pathname}?evento=${encodeURIComponent(evento.id)}`;
+      const texto = `${evento.estabelecimento || "Evento"} - ${formatarAtracoesTexto(evento)} no ${evento.bairro || "bairro informado"}.`;
+
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: "EventosThe",
+            text: texto,
+            url
+          });
+          registrarMetrica(evento.id, "compartilhar");
+          return;
+        }
+
+        await navigator.clipboard.writeText(`${texto} ${url}`);
+        registrarMetrica(evento.id, "compartilhar");
+        mostrarMensagem("Link do evento copiado.");
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          console.warn("Não foi possível compartilhar:", error);
+          mostrarMensagem(`Copie o link do evento: ${url}`);
+        }
+      }
+    }
+
+    async function registrarMetrica(eventoId, nomeMetrica) {
+      if (!db || !eventoId) {
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, "eventos", eventoId), {
+          [`metricas.${nomeMetrica}`]: increment(1),
+          "metricas.ultimoCliqueEm": serverTimestamp()
+        });
+      } catch (error) {
+        console.warn("Não foi possível registrar métrica:", error);
+      }
+    }
+
+    async function registrarVisita() {
+      if (!db) {
+        return;
+      }
+
+      const hoje = obterDataHoje();
+      const chaveSessao = `eventosthe_visita_${hoje}`;
+
+      if (sessionStorage.getItem(chaveSessao)) {
+        return;
+      }
+
+      try {
+        sessionStorage.setItem(chaveSessao, "1");
+        await setDoc(doc(db, "metricas", "publico"), {
+          visitasTotais: increment(1),
+          [`visitasPorDia.${hoje}`]: increment(1),
+          ultimaVisitaEm: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        sessionStorage.removeItem(chaveSessao);
+        console.warn("Não foi possível registrar visita:", error);
+      }
+    }
+
+    function focarEventoNoMapa(evento) {
+      if (!temCoordenadasValidas(evento)) {
+        mostrarMensagem("Este evento ainda não tem coordenadas válidas para aparecer no mapa.");
+        return;
+      }
+
+      map.setView([Number(evento.latitude), Number(evento.longitude)], 16);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function criarPopup(evento) {
+      return `
+        <article class="popup-card">
+          <h2>${escaparHtml(evento.estabelecimento || "Estabelecimento")}</h2>
+          <p><strong>Atrações:</strong> ${escaparHtml(formatarAtracoesTexto(evento))}</p>
+          <p><strong>Gêneros:</strong> ${escaparHtml(formatarGenerosDoEvento(evento))}</p>
+          <p><strong>Bairro:</strong> ${escaparHtml(evento.bairro || "-")}</p>
+          <p><strong>Endereço:</strong> ${escaparHtml(formatarEndereco(evento))}</p>
+          <p><strong>Cobra couvert/entrada:</strong> ${eventoCobraCouvert(evento) ? "Sim" : "Não"}</p>
+          <p><strong>Valor:</strong> ${escaparHtml(evento.valor || "Grátis")}</p>
+          <p><strong>Horário:</strong> ${escaparHtml(obterHorario(evento))}</p>
+          <p><strong>Paga 10%:</strong> ${evento.pagaDezPorCento ? "Sim" : "Não"}</p>
+          <a href="${criarUrlRota(evento)}" target="_blank" rel="noopener">Como chegar</a>
+          ${criarLinksContato(evento, true)}
+        </article>
+      `;
+    }
+
+    function criarLinksContato(evento, compacto = false) {
+      const links = [
+        {
+          texto: "Instagram",
+          url: criarUrlInstagram(evento.instagram)
+        },
+        {
+          texto: "WhatsApp",
+          url: criarUrlWhatsApp(evento.whatsapp)
+        },
+        {
+          texto: "Ingressos",
+          url: criarUrlVenda(evento.linkIngressos)
+        }
+      ].filter((link) => link.url);
+
+      if (!links.length) {
+        return "";
+      }
+
+      return links.map((link) => {
+        const classe = compacto ? "" : ' class="action-link secondary"';
+        return `<a${classe} href="${escaparHtml(link.url)}" target="_blank" rel="noopener">${escaparHtml(link.texto)}</a>`;
+      }).join("");
+    }
+
+    function criarUrlInstagram(valor) {
+      const texto = String(valor || "").trim();
+
+      if (!texto) {
+        return "";
+      }
+
+      if (/^https?:\/\//i.test(texto)) {
+        return texto;
+      }
+
+      const usuario = texto.replace(/^@/, "").replace(/^instagram\.com\//i, "").replace(/^www\.instagram\.com\//i, "").split(/[/?#]/)[0];
+      return usuario ? `https://instagram.com/${encodeURIComponent(usuario)}` : "";
+    }
+
+    function criarUrlWhatsApp(valor) {
+      const numeros = String(valor || "").replace(/\D/g, "");
+
+      if (!numeros) {
+        return "";
+      }
+
+      const numeroComPais = numeros.length <= 11 ? `55${numeros}` : numeros;
+      return `https://wa.me/${numeroComPais}`;
+    }
+
+    function criarUrlVenda(valor) {
+      const texto = String(valor || "").trim();
+
+      if (!texto) {
+        return "";
+      }
+
+      if (/^https?:\/\//i.test(texto)) {
+        return texto;
+      }
+
+      if (/^(wa\.me|api\.whatsapp\.com|www\.)/i.test(texto)) {
+        return `https://${texto}`;
+      }
+
+      const numeros = texto.replace(/\D/g, "");
+      if (numeros.length >= 10) {
+        return criarUrlWhatsApp(numeros);
+      }
+
+      return `https://${texto}`;
+    }
+
+    function criarUrlRota(evento) {
+      const latitude = Number(evento.latitude);
+      const longitude = Number(evento.longitude);
+
+      if (temCoordenadasValidas(evento)) {
+        return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+      }
+
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(evento.endereco || evento.estabelecimento || "Teresina PI")}`;
+    }
+
+    function atualizarContador(total) {
+      const eventCount = document.getElementById("eventCount");
+      const generoTexto = filtroAtual === "todos" ? "todos os gêneros" : formatarGenero(filtroAtual);
+      document.getElementById("listTitle").textContent = obterRotuloPeriodo();
+      eventCount.textContent = total === 1 ? `1 evento em ${generoTexto}` : `${total} eventos em ${generoTexto}`;
+    }
+
+    function ordenarEventos(a, b) {
+      const dataComparada = String(a.dataEvento || "").localeCompare(String(b.dataEvento || ""));
+      if (dataComparada !== 0) {
+        return dataComparada;
+      }
+
+      if (Boolean(a.destaque) !== Boolean(b.destaque)) {
+        return a.destaque ? -1 : 1;
+      }
+
+      return obterHorario(a).localeCompare(obterHorario(b), "pt-BR");
+    }
+
+    function obterIntervaloPeriodo() {
+      const hoje = new Date();
+      const inicio = formatarDataISO(hoje);
+      const fim = new Date(hoje);
+
+      if (periodoAtual === "amanha") {
+        fim.setDate(hoje.getDate() + 1);
+        const amanha = formatarDataISO(fim);
+        return { inicio: amanha, fim: amanha };
+      }
+
+      if (periodoAtual === "semana") {
+        fim.setDate(hoje.getDate() + 7);
+        return { inicio, fim: formatarDataISO(fim) };
+      }
+
+      return { inicio, fim: inicio };
+    }
+
+    function obterRotuloPeriodo() {
+      const rotulos = {
+        hoje: "Eventos de hoje",
+        amanha: "Rolês de amanhã",
+        semana: "Rolês desta semana",
+        todos: "Todos os rolês",
+        data: `Rolês de ${formatarData(dataEscolhida)}`
+      };
+
+      return rotulos[periodoAtual] || "Eventos";
+    }
+
+    function obterDataHoje() {
+      return formatarDataISO(new Date());
+    }
+
+    function formatarDataISO(data) {
+      const ano = data.getFullYear();
+      const mes = String(data.getMonth() + 1).padStart(2, "0");
+      const dia = String(data.getDate()).padStart(2, "0");
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    function formatarData(data) {
+      if (!data) {
+        return "-";
+      }
+
+      const [ano, mes, dia] = String(data).split("-");
+      return dia && mes && ano ? `${dia}/${mes}/${ano}` : data;
+    }
+
+    function obterAtracoesDoEvento(evento) {
+      if (Array.isArray(evento.atracoes) && evento.atracoes.length) {
+        return evento.atracoes;
+      }
+
+      return [{
+        banda: evento.banda || "",
+        genero: evento.genero || "",
+        horario: evento.horario || "",
+        horarioInicio: evento.horarioInicio || ""
+      }];
+    }
+
+    function obterGenerosDoEvento(evento) {
+      return [...new Set(obterAtracoesDoEvento(evento).map((atracao) => normalizarGenero(atracao.genero)).filter(Boolean))];
+    }
+
+    function formatarGenerosDoEvento(evento) {
+      return obterGenerosDoEvento(evento).map(formatarGenero).join(", ") || "-";
+    }
+
+    function criarListaAtracoes(evento) {
+      const atracoes = obterAtracoesDoEvento(evento);
+      return `
+        <ul class="attraction-list">
+          ${atracoes.map((atracao) => `
+            <li>
+              ${escaparHtml(atracao.banda || "Atração")}
+              <span>${escaparHtml(formatarGenero(atracao.genero))} · ${escaparHtml(atracao.horario || atracao.horarioInicio || "-")}</span>
+            </li>
+          `).join("")}
+        </ul>
+      `;
+    }
+
+    function formatarAtracoesTexto(evento) {
+      return obterAtracoesDoEvento(evento)
+        .map((atracao) => `${atracao.banda || "Música ao vivo"} às ${atracao.horario || atracao.horarioInicio || "-"}`)
+        .join(", ");
+    }
+
+    function obterHorario(evento) {
+      const primeiraAtracao = obterAtracoesDoEvento(evento)[0];
+      return primeiraAtracao?.horarioInicio || evento.horarioInicio || primeiraAtracao?.horario || evento.horario || "-";
+    }
+
+    function temCoordenadasValidas(evento) {
+      const latitude = Number(evento.latitude);
+      const longitude = Number(evento.longitude);
+      return Number.isFinite(latitude) &&
+        Number.isFinite(longitude) &&
+        latitude >= -6 &&
+        latitude <= -4 &&
+        longitude >= -44 &&
+        longitude <= -41;
+    }
+
+    function formatarEndereco(evento) {
+      const partes = [evento.endereco, evento.numero].filter(Boolean);
+      return partes.length ? partes.join(", ") : "-";
+    }
+
+    function eventoEhGratis(evento) {
+      return String(evento.valor || "").trim().toLowerCase().includes("grátis") ||
+        String(evento.valor || "").trim().toLowerCase().includes("gratis") ||
+        String(evento.valor || "").trim() === "0" ||
+        String(evento.valor || "").trim().toLowerCase() === "r$ 0,00";
+    }
+
+    function eventoCobraCouvert(evento) {
+      if (typeof evento.cobraCouvert === "boolean") {
+        return evento.cobraCouvert;
+      }
+
+      return !eventoEhGratis(evento);
+    }
+
+    function normalizarStatus(status) {
+      return String(status || "ativo").trim().toLowerCase();
+    }
+
+    function mostrarMensagem(texto) {
+      const messageBox = document.getElementById("messageBox");
+      messageBox.textContent = texto;
+      messageBox.classList.add("show");
+    }
+
+    function esconderMensagem() {
+      const messageBox = document.getElementById("messageBox");
+      messageBox.textContent = "";
+      messageBox.classList.remove("show");
+    }
+
+    function normalizarGenero(genero) {
+      const valor = String(genero || "").trim().toLowerCase();
+      return valor === "kpop" ? "k-pop" : valor;
+    }
+
+    function normalizarTexto(valor) {
+      return String(valor || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function formatarGenero(genero) {
+      const generos = {
+        pagode: "Pagode",
+        "forró": "Forró",
+        forro: "Forró",
+        sertanejo: "Sertanejo",
+        rock: "Rock",
+        mpb: "MPB",
+        "k-pop": "K-pop",
+        kpop: "K-pop"
+      };
+
+      return generos[normalizarGenero(genero)] || genero || "-";
+    }
+
+    function escaparHtml(valor) {
+      return String(valor)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
