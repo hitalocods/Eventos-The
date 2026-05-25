@@ -112,7 +112,7 @@ export function HomeClient() {
         <a className="active" href="/">
           Explorar
         </a>
-        <a href="#map">
+        <a href="#map" id="mapNavButton">
           Mapa
         </a>
         <a href="/patrocinadores">

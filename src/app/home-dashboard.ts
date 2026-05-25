@@ -19,6 +19,7 @@ import { getFirebaseClient } from "./admin/firebase-client";
     let L;
     let markersLayer;
     let userMarker;
+    const eventMarkers = new Map();
     let db;
     let eventos = [];
     let filtroAtual = "todos";
@@ -62,6 +63,7 @@ async function iniciarHomePage() {
       configurarPeriodos();
       configurarDataEscolhida();
       configurarBusca();
+      configurarBotaoMapa();
       configurarBotaoLocalizacao();
       carregarEventos();
 }
@@ -143,6 +145,16 @@ async function iniciarHomePage() {
 
     function configurarBotaoLocalizacao() {
       document.getElementById("locationButton").addEventListener("click", centralizarNaLocalizacaoAtual);
+    }
+
+    function configurarBotaoMapa() {
+      document.getElementById("mapNavButton")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        rolarParaMapa();
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 260);
+      });
     }
 
     function centralizarNaLocalizacaoAtual() {
@@ -276,6 +288,7 @@ async function iniciarHomePage() {
 
     function adicionarMarcadores(eventosFiltrados) {
       markersLayer.clearLayers();
+      eventMarkers.clear();
 
       eventosFiltrados
         .filter(temCoordenadasValidas)
@@ -289,6 +302,7 @@ async function iniciarHomePage() {
           });
           marker.bindPopup(criarPopup(evento));
           marker.addTo(markersLayer);
+          eventMarkers.set(evento.id, marker);
         });
     }
 
@@ -474,7 +488,22 @@ async function iniciarHomePage() {
       }
 
       map.setView([Number(evento.latitude), Number(evento.longitude)], 16);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      rolarParaMapa();
+      setTimeout(() => {
+        map.invalidateSize();
+        eventMarkers.get(evento.id)?.openPopup();
+      }, 360);
+    }
+
+    function rolarParaMapa() {
+      const mapElement = document.getElementById("map");
+      if (!mapElement) {
+        return;
+      }
+
+      const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
+      const targetTop = mapElement.getBoundingClientRect().top + window.scrollY - topbarHeight - 8;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
     }
 
     function criarPopup(evento) {
