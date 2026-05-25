@@ -1,55 +1,84 @@
 # EventosThe
 
-App webmobile para mostrar eventos com música ao vivo em Teresina/PI.
+App webmobile para mostrar eventos com musica ao vivo em Teresina/PI.
 
 ## Arquivos
 
-- `index.html`: tela pública com mapa, filtros, eventos de hoje e botão "Como chegar".
-- `admin.html`: painel administrativo com login Firebase Auth, cadastro, edição e exclusão de eventos.
+- `src/app/**`: rotas do Next.js.
+- `src/app/admin/**`: painel administrativo migrado para React/Next.
+- `src/app/HomeClient.tsx`: pagina principal com mapa migrada para React/Next.
+- `src/app/patrocinadores/**`: pagina comercial de patrocinadores.
+- `public/`: imagens, icones e manifesto servidos como assets estaticos.
 
-## Como rodar
+## Como rodar com Next.js
 
-Abra `index.html` no navegador. Para usar o banco real, substitua o bloco `firebaseConfig` em `index.html` e `admin.html` pelas credenciais do seu projeto Firebase.
-
-Se quiser rodar como site local, abra o terminal dentro da pasta do projeto e execute:
+Instale as dependencias uma vez:
 
 ```txt
-node server.mjs
+npm.cmd install
+```
+
+Rode o servidor de desenvolvimento:
+
+```txt
+npm.cmd run dev
 ```
 
 Depois acesse:
 
 ```txt
-http://localhost:8080
-http://localhost:8080/admin.html
+http://localhost:3000
+http://localhost:3000/admin
+http://localhost:3000/patrocinadores
 ```
 
-## Firebase grátis
+Valide o build de producao:
+
+```txt
+npm.cmd run build
+```
+
+As rotas `/`, `/admin` e `/patrocinadores` ja rodam como paginas React/Next. As rotas antigas `/embaixadores` e `/seja-embaixador` redirecionam para `/patrocinadores`.
+A proxima etapa recomendada e preparar a integracao de cobranca via Pagar.me.
+
+## Firebase
+
+O projeto ainda usa Firebase Auth e Firestore. No admin, a configuracao ja fica no modulo Next `src/app/admin/firebase-client.ts` e pode ser sobrescrita por variaveis de ambiente:
+
+```txt
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
 
 No Firebase Console:
 
 1. Crie um projeto.
 2. Ative o Firestore Database.
 3. Ative Authentication > Sign-in method > E-mail/senha.
-4. Crie um usuário admin em Authentication > Users.
-5. Copie as credenciais do app web para o bloco `firebaseConfig`.
+4. Crie um usuario admin em Authentication > Users.
+5. Configure as variaveis `NEXT_PUBLIC_FIREBASE_*` no ambiente.
 
-## Estrutura da coleção
+## Estrutura da colecao
 
-Coleção: `eventos`
+Colecao: `eventos`
 
 Campos usados:
 
 - `dataEvento`: texto no formato `YYYY-MM-DD`
 - `estabelecimento`: texto
 - `banda`: texto
-- `genero`: `pagode`, `forró`, `sertanejo`, `rock` ou `mpb`
+- `genero`: `pagode`, `forro`, `sertanejo`, `rock` ou `mpb`
 - `cep`: texto
 - `numero`: texto
 - `bairro`: texto
 - `endereco`: texto
-- `latitude`: número
-- `longitude`: número
+- `latitude`: numero
+- `longitude`: numero
 - `valor`: texto
 - `horario`: texto
 - `horarioInicio`: texto no formato `HH:MM`, usado para ordenar eventos
@@ -61,7 +90,7 @@ Campos usados:
 
 ## Regras iniciais recomendadas
 
-Para MVP: qualquer pessoa lê eventos, usuários anônimos podem registrar métricas de clique, e só usuário autenticado cria, edita ou exclui eventos.
+Para MVP: qualquer pessoa le eventos, usuarios anonimos podem registrar metricas de clique, e so usuario autenticado cria, edita ou exclui eventos.
 
 ```txt
 rules_version = '2';
@@ -81,10 +110,6 @@ service cloud.firestore {
 }
 ```
 
-## Hospedagem gratuita
+## Hospedagem
 
-Depois, o caminho mais simples é Firebase Hosting. Você ganha um domínio gratuito parecido com:
-
-```txt
-https://teresina-tem-som.web.app
-```
+Com Next.js e futura cobranca via Pagar.me, o caminho mais direto e hospedar em uma plataforma que execute rotas de servidor e webhooks, como Vercel. O Firebase continua podendo ser usado como Auth/Firestore.

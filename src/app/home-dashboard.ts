@@ -1,636 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EventosThe</title>
-  <meta name="theme-color" content="#1463ff">
-  <meta name="apple-mobile-web-app-title" content="EventosThe">
-  <meta name="application-name" content="EventosThe">
-  <meta name="description" content="Rolês com música ao vivo em Teresina. Veja no mapa onde tem som hoje.">
-  <meta property="og:title" content="EventosThe">
-  <meta property="og:description" content="Rolês com música ao vivo em Teresina. Veja no mapa onde tem som hoje.">
-  <meta property="og:image" content="https://eventos-the.web.app/preview.png">
-  <meta property="og:url" content="https://eventos-the.web.app">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="EventosThe">
-  <meta name="twitter:description" content="Rolês com música ao vivo em Teresina. Veja no mapa onde tem som hoje.">
-  <meta name="twitter:image" content="https://eventos-the.web.app/preview.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="preconnect" href="https://unpkg.com">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <style>
-    :root {
-      --blue: #1463ff;
-      --blue-dark: #08245c;
-      --orange: #ff6b35;
-      --pink: #e83e8c;
-      --yellow: #ffd166;
-      --green: #0f9f7a;
-      --bg: #f7f3ea;
-      --surface: #ffffff;
-      --text: #111827;
-      --muted: #667085;
-      --border: #eadfcd;
-      --warning-bg: #fff7ed;
-      --warning-text: #9a3412;
-      --shadow: 0 16px 36px rgba(17, 24, 39, 0.12);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 16px;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(255, 209, 102, 0.34), transparent 34vw),
-        linear-gradient(180deg, #fff9ee 0%, var(--bg) 48%, #eef6ff 100%);
-    }
-
-    body {
-      padding-bottom: 76px;
-    }
-
-    .topbar {
-      min-height: 74px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: linear-gradient(135deg, #08245c 0%, #1463ff 58%, #e83e8c 100%);
-      color: #fff;
-      box-shadow: 0 10px 26px rgba(8, 36, 92, 0.28);
-      position: sticky;
-      top: 0;
-      z-index: 800;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 1.35rem;
-      line-height: 1.1;
-      letter-spacing: 0;
-    }
-
-    .brand p {
-      margin: 4px 0 0;
-      color: rgba(255, 255, 255, 0.86);
-      font-size: 0.9rem;
-    }
-
-    .icon-button {
-      width: 46px;
-      height: 46px;
-      border: 0;
-      border-radius: 14px;
-      background: var(--yellow);
-      color: var(--blue-dark);
-      box-shadow: 0 8px 18px rgba(255, 209, 102, 0.24);
-      font-size: 1.25rem;
-      font-weight: 700;
-      cursor: pointer;
-      flex: 0 0 auto;
-    }
-
-    #map {
-      height: 58vh;
-      min-height: 340px;
-      width: 100%;
-      background: #dce8ef;
-      border-bottom: 4px solid var(--yellow);
-    }
-
-    .filters {
-      padding: 10px 12px 12px;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      background: rgba(255, 255, 255, 0.88);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-
-    .quick-search {
-      padding: 12px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.88);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-    }
-
-    .quick-search input {
-      width: 100%;
-      min-height: 46px;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--text);
-      font: inherit;
-    }
-
-    .quick-search label {
-      min-height: 46px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 14px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--blue-dark);
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .quick-search input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      min-height: 18px;
-      accent-color: var(--orange);
-    }
-
-    .date-tabs {
-      padding: 12px 12px 0;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(12px);
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-
-    .date-picker-row {
-      padding: 10px 12px 0;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(12px);
-    }
-
-    .date-picker-row label {
-      min-height: 46px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 8px;
-      padding: 0 14px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--blue-dark);
-      font-weight: 700;
-    }
-
-    .date-picker-row input {
-      min-width: 0;
-      border: 0;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      outline: 0;
-    }
-
-    .filters::-webkit-scrollbar,
-    .date-tabs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .filter-button,
-    .date-button {
-      min-width: max-content;
-      min-height: 46px;
-      padding: 0 16px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--blue-dark);
-      font-size: 0.96rem;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-      flex: 0 0 auto;
-    }
-
-    .filter-button.active,
-    .date-button.active {
-      background: linear-gradient(135deg, var(--orange), var(--pink));
-      border-color: transparent;
-      color: #fff;
-      box-shadow: 0 8px 20px rgba(232, 62, 140, 0.22);
-    }
-
-    .content {
-      width: min(940px, 100%);
-      margin: 0 auto;
-      padding: 16px 14px 22px;
-    }
-
-    .message {
-      display: none;
-      margin-bottom: 12px;
-      padding: 12px;
-      border: 1px solid #fed7aa;
-      border-radius: 14px;
-      background: var(--warning-bg);
-      color: var(--warning-text);
-      line-height: 1.35;
-    }
-
-    .message.show {
-      display: block;
-    }
-
-    .section-title {
-      margin: 0 0 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .section-title h2 {
-      margin: 0;
-      color: var(--blue-dark);
-      font-size: 1.18rem;
-      letter-spacing: 0;
-    }
-
-    .event-count {
-      color: var(--muted);
-      font-size: 0.92rem;
-      white-space: nowrap;
-    }
-
-    .event-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .event-card {
-      padding: 13px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .event-card.highlight {
-      border-color: rgba(255, 107, 53, 0.52);
-      box-shadow: 0 18px 42px rgba(255, 107, 53, 0.18);
-    }
-
-    .event-card.shared-focus {
-      outline: 4px solid rgba(255, 209, 102, 0.78);
-      outline-offset: 3px;
-    }
-
-    .event-card.cancelled {
-      opacity: 0.68;
-    }
-
-    .badge-row {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-      margin: 9px 0 7px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 0 9px;
-      border-radius: 999px;
-      background: #eef4ff;
-      color: var(--blue-dark);
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    .badge.hot {
-      background: #fff0e8;
-      color: #b93815;
-    }
-
-    .badge.free {
-      background: #ecfdf3;
-      color: #027a48;
-    }
-
-    .badge.cancelled {
-      background: #fef3f2;
-      color: #b42318;
-    }
-
-    .badge.no-map {
-      background: #fff7ed;
-      color: #9a3412;
-    }
-
-    .event-card::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto;
-      height: 5px;
-      background: linear-gradient(90deg, var(--orange), var(--pink), var(--blue));
-    }
-
-    .event-card h3 {
-      margin: 5px 0 7px;
-      color: var(--blue-dark);
-      font-size: 1.1rem;
-      letter-spacing: 0;
-    }
-
-    .event-meta {
-      margin: 4px 0;
-      color: var(--muted);
-      line-height: 1.35;
-    }
-
-    .event-meta strong {
-      color: var(--text);
-    }
-
-    .attraction-list {
-      margin: 8px 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 6px;
-    }
-
-    .attraction-list li {
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: #f8fbff;
-      color: var(--blue-dark);
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .attraction-list span {
-      display: block;
-      margin-top: 2px;
-      color: var(--muted);
-      font-size: 0.9rem;
-      font-weight: 400;
-    }
-
-    .card-actions {
-      margin-top: 11px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .action-link,
-    .action-button {
-      min-height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 13px;
-      border-radius: 999px;
-      border: 0;
-      background: linear-gradient(135deg, var(--blue), #6f4cff);
-      color: #fff;
-      text-decoration: none;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .action-link.secondary,
-    .action-button.secondary {
-      background: #fff6de;
-      color: var(--blue-dark);
-      border: 1px solid #f2d487;
-    }
-
-    .empty-state {
-      margin: 0;
-      padding: 14px;
-      border: 1px dashed var(--border);
-      border-radius: 18px;
-      color: var(--muted);
-      background: #fff;
-      line-height: 1.4;
-    }
-
-    .admin-link {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      z-index: 900;
-      min-height: 48px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
-      color: #fff;
-      text-decoration: none;
-      font-weight: 700;
-      box-shadow: 0 8px 22px rgba(8, 61, 104, 0.28);
-    }
-
-    .popup-card {
-      min-width: 220px;
-      max-width: 270px;
-      line-height: 1.35;
-    }
-
-    .popup-card h2 {
-      margin: 0 0 8px;
-      color: var(--blue-dark);
-      font-size: 1.05rem;
-      letter-spacing: 0;
-    }
-
-    .popup-card p {
-      margin: 5px 0;
-      font-size: 0.95rem;
-    }
-
-    .popup-card a {
-      min-height: 38px;
-      margin-top: 8px;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 11px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--orange), var(--pink));
-      color: #fff;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    @media (min-width: 780px) {
-      .event-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 430px) {
-      .topbar {
-        padding: 10px 12px;
-      }
-
-      .brand h1 {
-        font-size: 1.12rem;
-      }
-
-      .brand p {
-        font-size: 0.82rem;
-      }
-
-      #map {
-        height: 57vh;
-        min-height: 320px;
-      }
-
-      .filter-button {
-        min-width: max-content;
-        padding-inline: 14px;
-        font-size: 0.92rem;
-      }
-
-      .filters {
-        flex-wrap: wrap;
-        overflow-x: visible;
-      }
-
-      .filters .filter-button {
-        flex: 1 1 calc(25% - 8px);
-        min-width: 74px;
-        padding-inline: 10px;
-        font-size: 0.9rem;
-      }
-
-      .filters [data-genero="todos"] {
-        flex-basis: calc(40% - 8px);
-        min-width: 108px;
-      }
-
-      .quick-search {
-        grid-template-columns: 1fr;
-      }
-
-      .date-picker-row {
-        grid-template-columns: 1fr;
-      }
-
-      .date-tabs .date-button {
-        flex: 1 1 0;
-        min-width: 0;
-        min-height: 44px;
-        padding-inline: 9px;
-        font-size: 0.86rem;
-      }
-
-      .date-tabs {
-        gap: 6px;
-        padding-inline: 8px;
-        overflow-x: visible;
-      }
-
-      .date-tabs [data-periodo="semana"] {
-        flex-grow: 1.35;
-      }
-
-      .section-title {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .event-count {
-        white-space: normal;
-      }
-    }
-  </style>
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <h1>EventosThe</h1>
-      <p>Rolês com música ao vivo em Teresina</p>
-    </div>
-    <button class="icon-button" id="locationButton" type="button" aria-label="Centralizar na minha localização">⌖</button>
-  </header>
-
-  <main>
-    <div id="map" aria-label="Mapa com eventos de música ao vivo"></div>
-
-    <section class="date-tabs" aria-label="Filtros por data">
-      <button class="date-button active" type="button" data-periodo="hoje">Hoje</button>
-      <button class="date-button" type="button" data-periodo="amanha">Amanhã</button>
-      <button class="date-button" type="button" data-periodo="semana">Esta semana</button>
-      <button class="date-button" type="button" data-periodo="todos">Todos</button>
-    </section>
-
-    <section class="date-picker-row" aria-label="Escolher data específica">
-      <label>
-        Data
-        <input type="date" id="customDateInput">
-      </label>
-      <button class="date-button" type="button" id="clearDateButton">Limpar data</button>
-    </section>
-
-    <section class="filters" aria-label="Filtros por gênero musical">
-      <button class="filter-button active" type="button" data-genero="todos">Todos</button>
-      <button class="filter-button" type="button" data-genero="pagode">Pagode</button>
-      <button class="filter-button" type="button" data-genero="forró">Forró</button>
-      <button class="filter-button" type="button" data-genero="sertanejo">Sertanejo</button>
-      <button class="filter-button" type="button" data-genero="rock">Rock</button>
-      <button class="filter-button" type="button" data-genero="mpb">MPB</button>
-      <button class="filter-button" type="button" data-genero="k-pop">K-pop</button>
-    </section>
-
-    <section class="quick-search" aria-label="Busca rápida">
-      <input type="search" id="bairroSearch" placeholder="Buscar banda, local ou bairro">
-      <label>
-        <input type="checkbox" id="gratisFilter">
-        Grátis
-      </label>
-    </section>
-
-    <section class="content">
-      <div class="message" id="messageBox" role="status"></div>
-      <div class="section-title">
-        <h2 id="listTitle">Rolês de hoje</h2>
-        <span class="event-count" id="eventCount">Carregando eventos...</span>
-      </div>
-      <div class="event-list" id="eventList"></div>
-    </section>
-  </main>
-
-  <a class="admin-link" href="admin.html">Admin</a>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
+// @ts-nocheck
+import {
       getFirestore,
       collection,
       onSnapshot,
@@ -639,23 +8,15 @@
       updateDoc,
       increment,
       serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    } from "firebase/firestore";
+import { getFirebaseClient } from "./admin/firebase-client";
 
-    // Substitua pelos dados do seu projeto Firebase.
-    const firebaseConfig = {
-      apiKey: "AIzaSyDMXrN6BaYEHNGD--DrFRAOBKqrAnYoqQU",
-      authDomain: "teresina-tem-som.firebaseapp.com",
-      databaseURL: "https://teresina-tem-som-default-rtdb.firebaseio.com",
-      projectId: "teresina-tem-som",
-      storageBucket: "teresina-tem-som.firebasestorage.app",
-      messagingSenderId: "669339264688",
-      appId: "1:669339264688:web:1a3d615d2bf7cff0cfbd75"
-    };
 
     const TERESINA_CENTRO = [-5.08921, -42.80160];
     const DEFAULT_ZOOM = 14;
 
     let map;
+    let L;
     let markersLayer;
     let userMarker;
     let db;
@@ -667,7 +28,34 @@
     let somenteGratis = false;
     let eventoCompartilhadoId = null;
 
-    document.addEventListener("DOMContentLoaded", () => {
+    let cleanupHomePage = null;
+let eventController = null;
+let unsubscribeEventos = null;
+
+export function setupHomePage() {
+  cleanupHomePage?.();
+  eventController = new AbortController();
+  iniciarHomePage();
+  cleanupHomePage = () => {
+    eventController?.abort();
+    eventController = null;
+    if (unsubscribeEventos) {
+      unsubscribeEventos();
+      unsubscribeEventos = null;
+    }
+    if (map) {
+      map.remove();
+      map = null;
+    }
+  };
+  return cleanupHomePage;
+}
+
+async function iniciarHomePage() {
+      L = await import("leaflet");
+      if (!eventController) {
+        return;
+      }
       eventoCompartilhadoId = new URLSearchParams(window.location.search).get("evento");
       iniciarMapa();
       configurarFiltros();
@@ -676,7 +64,7 @@
       configurarBusca();
       configurarBotaoLocalizacao();
       carregarEventos();
-    });
+}
 
     function iniciarMapa() {
       map = L.map("map", { zoomControl: true }).setView(TERESINA_CENTRO, DEFAULT_ZOOM);
@@ -806,11 +194,11 @@
 
     function carregarEventos() {
       try {
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
+        const firebase = getFirebaseClient();
+        db = firebase.db;
         const eventosRef = collection(db, "eventos");
 
-        onSnapshot(
+        unsubscribeEventos = onSnapshot(
           eventosRef,
           (snapshot) => {
             eventos = snapshot.docs.map((documento) => ({
@@ -892,7 +280,13 @@
       eventosFiltrados
         .filter(temCoordenadasValidas)
         .forEach((evento) => {
-          const marker = L.marker([Number(evento.latitude), Number(evento.longitude)]);
+          const marker = L.circleMarker([Number(evento.latitude), Number(evento.longitude)], {
+            radius: 9,
+            color: "#1463ff",
+            fillColor: evento.destaque ? "#ff6b35" : "#1463ff",
+            fillOpacity: 0.9,
+            weight: 3
+          });
           marker.bindPopup(criarPopup(evento));
           marker.addTo(markersLayer);
         });
@@ -911,19 +305,29 @@
         const card = document.createElement("article");
         card.id = `evento-${evento.id}`;
         card.className = `event-card${evento.destaque ? " highlight" : ""}${normalizarStatus(evento.status) === "cancelado" ? " cancelled" : ""}`;
+        const primeiraAtracao = obterAtracoesDoEvento(evento)[0] || {};
         card.innerHTML = `
-          <h3>${escaparHtml(evento.estabelecimento || "Estabelecimento")}</h3>
-          <div class="badge-row">${criarBadges(evento)}</div>
-          <p class="event-meta"><strong>Data:</strong> ${escaparHtml(formatarData(evento.dataEvento))} · <strong>Gêneros:</strong> ${escaparHtml(formatarGenerosDoEvento(evento))}</p>
-          ${criarListaAtracoes(evento)}
-          <p class="event-meta"><strong>Bairro:</strong> ${escaparHtml(evento.bairro || "-")}</p>
-          <p class="event-meta"><strong>Endereço:</strong> ${escaparHtml(formatarEndereco(evento))}</p>
-          <p class="event-meta"><strong>Horário:</strong> ${escaparHtml(obterHorario(evento))} · <strong>Couvert/entrada:</strong> ${eventoCobraCouvert(evento) ? "Sim" : "Não"} · <strong>Valor:</strong> ${escaparHtml(evento.valor || "Grátis")} · <strong>10%:</strong> ${evento.pagaDezPorCento ? "Sim" : "Não"}</p>
-          <div class="card-actions">
-            <a class="action-link" href="${criarUrlRota(evento)}" target="_blank" rel="noopener">Como chegar</a>
-            ${criarLinksContato(evento)}
-            <button class="action-button secondary" type="button" data-share-id="${escaparHtml(evento.id)}">Compartilhar</button>
-            <button class="action-button secondary" type="button" data-evento-id="${escaparHtml(evento.id)}">Ver no mapa</button>
+          <div class="event-art">
+            <span class="event-art-badge">${escaparHtml(obterSeloData(evento))}</span>
+            <strong>${escaparHtml(primeiraAtracao.banda || evento.banda || evento.estabelecimento || "Música ao vivo")}</strong>
+            <div>
+              <small>${escaparHtml(formatarGenero(primeiraAtracao.genero || evento.genero))}</small>
+              <em>${escaparHtml(evento.bairro || "Teresina")}</em>
+            </div>
+          </div>
+          <div class="event-info">
+            <h3>${escaparHtml(evento.estabelecimento || "Estabelecimento")}</h3>
+            <div class="badge-row">${criarBadges(evento)}</div>
+            <p class="event-meta"><strong>Data:</strong> ${escaparHtml(formatarData(evento.dataEvento))} · <strong>Horário:</strong> ${escaparHtml(obterHorario(evento))}</p>
+            ${criarListaAtracoes(evento)}
+            <p class="event-meta"><strong>Bairro:</strong> ${escaparHtml(evento.bairro || "-")}</p>
+            <p class="event-meta"><strong>Couvert:</strong> ${eventoCobraCouvert(evento) ? "Sim" : "Não"} <strong>| Valor:</strong> ${escaparHtml(evento.valor || "Grátis")}</p>
+            <div class="card-actions">
+              <a class="action-link" href="${criarUrlRota(evento)}" target="_blank" rel="noopener">Como chegar</a>
+              ${criarLinksContato(evento)}
+              <button class="action-button secondary" type="button" data-share-id="${escaparHtml(evento.id)}">Compartilhar</button>
+              <button class="action-button secondary" type="button" data-evento-id="${escaparHtml(evento.id)}">Ver no mapa</button>
+            </div>
           </div>
         `;
 
@@ -935,6 +339,24 @@
         });
         eventList.appendChild(card);
       });
+    }
+
+    function obterSeloData(evento) {
+      const dataEvento = evento.dataEvento || "";
+      const hoje = obterDataHoje();
+      const amanha = new Date();
+      amanha.setDate(amanha.getDate() + 1);
+      const dataAmanha = formatarDataISO(amanha);
+
+      if (dataEvento === hoje) {
+        return "Hoje";
+      }
+
+      if (dataEvento === dataAmanha) {
+        return "Amanhã";
+      }
+
+      return formatarData(dataEvento);
     }
 
     function focarEventoCompartilhado() {
@@ -1359,6 +781,11 @@
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
     }
-  </script>
-</body>
-</html>
+
+function getElement(id) {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Elemento #${id} nao encontrado na home.`);
+  }
+  return element;
+}

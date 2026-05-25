@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+.next/
+out/
 
 # Firebase local cache and logs
 .firebase/
@@ -19,3 +21,8 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Local visual references
+/1.png
+/2.png
+/visual.png
